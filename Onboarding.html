@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>WhatsApp CRM Lite</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#0a0a0f;--bg2:#111118;--bg3:#18181f;--border:#ffffff0f;
+    --orange:#ff6b2b;--orange2:#ff8c55;--green:#22c55e;--red:#ef4444;
+    --blue:#3b82f6;--text:#f0f0f8;--muted:#6b6b80;--card:#13131a;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;}
+  /* HIDDEN SCREENS */
+  .screen{display:none;}
+  .screen.active{display:flex;flex-direction:column;min-height:100vh;}
+
+  /* ── ONBOARDING ── */
+  #screen-landing{background:var(--bg);align-items:center;justify-content:center;position:relative;overflow:hidden;}
+  .mesh{position:absolute;inset:0;background:
+    radial-gradient(ellipse 60% 40% at 20% 20%,#ff6b2b18 0%,transparent 70%),
+    radial-gradient(ellipse 50% 50% at 80% 80%,#3b82f618 0%,transparent 70%);pointer-events:none;}
+  .grain{position:absolute;inset:0;opacity:.04;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+  .landing-inner{position:relative;z-index:1;text-align:center;padding:2rem;max-width:480px;}
+  .logo-badge{display:inline-flex;align-items:center;gap:.6rem;background:#ff6b2b18;border:1px solid #ff6b2b33;border-radius:100px;padding:.4rem 1rem;margin-bottom:2rem;font-size:.8rem;color:var(--orange);font-family:'Syne',sans-serif;font-weight:600;letter-spacing:.08em;}
+  .logo-dot{width:8px;height:8px;background:var(--orange);border-radius:50%;animation:pulse 2s infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  h1{font-family:'Syne',sans-serif;font-size:clamp(2.2rem,6vw,3.2rem);font-weight:800;line-height:1.1;margin-bottom:1rem;}
+  h1 span{color:var(--orange);}
+  .sub{color:var(--muted);font-size:1rem;line-height:1.6;margin-bottom:2.5rem;}
+  .btn-primary{display:inline-flex;align-items:center;gap:.5rem;background:var(--orange);color:#fff;border:none;padding:.85rem 2rem;border-radius:12px;font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;cursor:pointer;transition:.2s;text-decoration:none;}
+  .btn-primary:hover{background:var(--orange2);transform:translateY(-1px);}
+  .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--muted);padding:.85rem 1.5rem;border-radius:12px;cursor:pointer;font-size:.9rem;transition:.2s;margin-top:.8rem;}
+  .btn-ghost:hover{border-color:var(--orange);color:var(--orange);}
+  .ctas{display:flex;flex-direction:column;gap:.5rem;align-items:center;}
+  .pills{display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem;margin-top:2rem;}
+  .pill{background:var(--bg3);border:1px solid var(--border);border-radius:100px;padding:.3rem .8rem;font-size:.75rem;color:var(--muted);}
+
+  /* ── AUTH FORMS ── */
+  #screen-register,#screen-login{background:var(--bg);align-items:center;justify-content:center;padding:2rem;}
+  .form-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:2rem;width:100%;max-width:420px;}
+  .form-title{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;margin-bottom:.3rem;}
+  .form-sub{color:var(--muted);font-size:.85rem;margin-bottom:1.5rem;}
+  .form-group{margin-bottom:1rem;}
+  label{display:block;font-size:.8rem;color:var(--muted);margin-bottom:.35rem;font-weight:500;}
+  input,select{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:.7rem 1rem;color:var(--text);font-size:.9rem;font-family:'DM Sans',sans-serif;outline:none;transition:.2s;}
+  input:focus,select:focus{border-color:var(--orange);}
+  select option{background:var(--bg3);}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;}
+  .btn-form{width:100%;background:var(--orange);color:#fff;border:none;padding:.85rem;border-radius:12px;font-family:'Syne',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;transition:.2s;margin-top:.5rem;}
+  .btn-form:hover{background:var(--orange2);}
+  .form-link{text-align:center;color:var(--muted);font-size:.85rem;margin-top:1rem;}
+  .form-link a{color:var(--orange);cursor:pointer;text-decoration:none;}
+  .err{color:var(--red);font-size:.82rem;margin-top:.4rem;display:none;}
+  .err.show{display:block;}
+  .step-indicator{display:flex;gap:.4rem;justify-content:center;margin-bottom:1.5rem;}
+  .step-dot{width:8px;height:8px;border-radius:50%;background:var(--border);}
+  .step-dot.active{background:var(--orange);}
+  .step-dot.done{background:var(--green);}
+
+  /* ── MAIN APP LAYOUT ── */
+  #screen-app{flex-direction:row;}
+  .sidebar{width:220px;min-height:100vh;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100;}
+  .sidebar-logo{padding:1.2rem 1.2rem 1rem;border-bottom:1px solid var(--border);}
+  .sidebar-logo .brand{font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;color:var(--text);}
+  .sidebar-logo .plan-badge{background:#ff6b2b20;color:var(--orange);border:1px solid #ff6b2b33;border-radius:6px;padding:.15rem .5rem;font-size:.7rem;font-family:'Syne',sans-serif;font-weight:600;margin-top:.3rem;display:inline-block;}
+  nav{flex:1;padding:1rem .75rem;}
+  .nav-item{display:flex;align-items:center;gap:.7rem;padding:.6rem .8rem;border-radius:10px;cursor:pointer;color:var(--muted);font-size:.88rem;transition:.15s;margin-bottom:.1rem;border:none;background:transparent;width:100%;text-align:left;}
+  .nav-item:hover{background:var(--bg3);color:var(--text);}
+  .nav-item.active{background:#ff6b2b15;color:var(--orange);}
+  .nav-item svg{width:17px;height:17px;flex-shrink:0;}
+  .nav-section{font-size:.68rem;color:var(--muted);font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:.5rem .8rem .3rem;margin-top:.5rem;}
+  .sidebar-footer{padding:1rem;border-top:1px solid var(--border);}
+  .avatar{width:32px;height:32px;background:var(--orange);border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:.9rem;color:#fff;}
+  .shop-name-small{font-size:.82rem;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:130px;}
+  .logout-btn{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:.75rem;margin-top:.3rem;display:flex;align-items:center;gap:.3rem;}
+  .logout-btn:hover{color:var(--red);}
+  .main-content{margin-left:220px;flex:1;min-height:100vh;}
+  .topbar{padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg)/95;backdrop-filter:blur(10px);z-index:50;}
+  .page-title{font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;}
+  .topbar-right{display:flex;align-items:center;gap:.8rem;}
+  .status-dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
+  .content-area{padding:1.5rem;}
+
+  /* ── TAB PANELS ── */
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+
+  /* ── STAT CARDS ── */
+  .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:1.5rem;}
+  .stat-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.2rem;position:relative;overflow:hidden;}
+  .stat-card::before{content:'';position:absolute;inset:0;border-radius:16px;opacity:.08;}
+  .stat-card.orange::before{background:var(--orange);}
+  .stat-card.green::before{background:var(--green);}
+  .stat-card.blue::before{background:var(--blue);}
+  .stat-card.purple::before{background:#8b5cf6;}
+  .stat-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:.8rem;font-size:1.1rem;}
+  .stat-card.orange .stat-icon{background:#ff6b2b22;}
+  .stat-card.green .stat-icon{background:#22c55e22;}
+  .stat-card.blue .stat-icon{background:#3b82f622;}
+  .stat-card.purple .stat-icon{background:#8b5cf622;}
+  .stat-val{font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;line-height:1;}
+  .stat-lbl{color:var(--muted);font-size:.78rem;margin-top:.3rem;}
+  .stat-trend{font-size:.75rem;margin-top:.4rem;}
+  .stat-trend.up{color:var(--green);}
+  .stat-trend.down{color:var(--red);}
+
+  /* ── CHARTS ── */
+  .charts-row{display:grid;grid-template-columns:2fr 1fr;gap:1rem;margin-bottom:1.5rem;}
+  .chart-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.2rem;}
+  .chart-title{font-family:'Syne',sans-serif;font-weight:700;font-size:.95rem;margin-bottom:1rem;}
+  .chart-wrap{position:relative;height:220px;}
+
+  /* ── TABLES ── */
+  .table-card{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:1.5rem;}
+  .table-header{padding:1rem 1.2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+  .table-title{font-family:'Syne',sans-serif;font-weight:700;font-size:.95rem;}
+  table{width:100%;border-collapse:collapse;}
+  th{padding:.7rem 1rem;text-align:left;font-size:.72rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border);}
+  td{padding:.75rem 1rem;font-size:.85rem;border-bottom:1px solid var(--border);}
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:#ffffff04;}
+  .badge{display:inline-flex;align-items:center;gap:.3rem;padding:.2rem .6rem;border-radius:6px;font-size:.72rem;font-weight:600;}
+  .badge-green{background:#22c55e18;color:var(--green);border:1px solid #22c55e33;}
+  .badge-red{background:#ef444418;color:var(--red);border:1px solid #ef444433;}
+  .badge-orange{background:#ff6b2b18;color:var(--orange);border:1px solid #ff6b2b33;}
+  .badge-gray{background:#ffffff0a;color:var(--muted);border:1px solid var(--border);}
+  .badge-blue{background:#3b82f618;color:var(--blue);border:1px solid #3b82f633;}
+
+  /* ── SETTINGS ── */
+  .settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+  .settings-section{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.5rem;}
+  .settings-section h3{font-family:'Syne',sans-serif;font-weight:700;font-size:.95rem;margin-bottom:1rem;}
+  .btn-save{background:var(--orange);color:#fff;border:none;padding:.6rem 1.4rem;border-radius:10px;font-family:'Syne',sans-serif;font-weight:700;font-size:.85rem;cursor:pointer;transition:.2s;}
+  .btn-save:hover{background:var(--orange2);}
+  .provider-selector{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-bottom:1rem;}
+  .provider-btn{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:.6rem;text-align:center;cursor:pointer;transition:.2s;font-size:.78rem;color:var(--muted);}
+  .provider-btn.selected{border-color:var(--orange);color:var(--orange);background:#ff6b2b10;}
+
+  /* ── MAP PLACEHOLDER ── */
+  .map-area{background:var(--bg3);border-radius:12px;height:280px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+  .map-area .map-bg{position:absolute;inset:0;opacity:.06;background-image:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");}
+  .map-dots{position:absolute;inset:0;}
+  .map-dot{position:absolute;width:10px;height:10px;background:var(--orange);border-radius:50%;border:2px solid #fff3;animation:ping 2s infinite;}
+  @keyframes ping{0%{box-shadow:0 0 0 0 #ff6b2b66}70%{box-shadow:0 0 0 8px transparent}100%{box-shadow:0 0 0 0 transparent}}
+  .map-label{position:relative;z-index:1;text-align:center;color:var(--muted);font-size:.85rem;}
+
+  /* ── ADMIN SCREEN ── */
+  #screen-admin{flex-direction:row;}
+  #screen-admin .sidebar{background:#0d0d14;}
+  .admin-badge{background:#ef444418;color:var(--red);border:1px solid #ef444433;border-radius:6px;padding:.15rem .5rem;font-size:.7rem;font-family:'Syne',sans-serif;font-weight:600;margin-top:.3rem;display:inline-block;}
+
+  /* ── TOAST ── */
+  .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:.8rem 1.2rem;font-size:.85rem;z-index:9999;transform:translateY(100px);opacity:0;transition:.3s;display:flex;align-items:center;gap:.6rem;}
+  .toast.show{transform:translateY(0);opacity:1;}
+  .toast.success{border-color:#22c55e44;}
+  .toast.error{border-color:#ef444444;}
+
+  /* ── LOADING ── */
+  .spinner{width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--orange);border-radius:50%;animation:spin .7s linear infinite;display:inline-block;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  @media(max-width:768px){
+    .sidebar{width:60px;}
+    .sidebar .brand,.sidebar .plan-badge,.nav-item span,.sidebar-logo .brand,.nav-section,.shop-name-small,.logout-btn span{display:none;}
+    .main-content{margin-left:60px;}
+    .stats-grid{grid-template-columns:1fr 1fr;}
+    .charts-row{grid-template-columns:1fr;}
+    .settings-grid{grid-template-columns:1fr;}
+    .form-row{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     SCREEN 1 — LANDING
+══════════════════════════════════════ -->
+<div id="screen-landing" class="screen active">
+  <div class="mesh"></div>
+  <div class="grain"></div>
+  <div class="landing-inner">
+    <div class="logo-badge">
+      <div class="logo-dot"></div>
+      WhatsApp CRM Lite · Beta
+    </div>
+    <h1>Vendez plus.<br/>Moins de <span>fraudes</span>.<br/>Zero effort.</h1>
+    <p class="sub">L'IA répond à vos clients WhatsApp 24h/7j, qualifie les leads et valide les paiements Mobile Money automatiquement.</p>
+    <div class="ctas">
+      <button class="btn-primary" onclick="showScreen('screen-register')">
+        ⚡ Démarrer gratuitement — 14 jours
+      </button>
+      <button class="btn-ghost" onclick="showScreen('screen-login')">J'ai déjà un compte →</button>
+      <button class="btn-ghost" onclick="showAdminLogin()">🔐 Accès Admin</button>
+    </div>
+    <div class="pills">
+      <span class="pill">✅ CinetPay</span>
+      <span class="pill">✅ FedaPay</span>
+      <span class="pill">✅ Hub2</span>
+      <span class="pill">🤖 Claude AI</span>
+      <span class="pill">📱 Green API</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN 2 — REGISTER
+══════════════════════════════════════ -->
+<div id="screen-register" class="screen">
+  <div style="display:flex;align-items:center;justify-content:center;flex:1;padding:2rem;">
+    <div class="form-card">
+      <div class="step-indicator">
+        <div class="step-dot active" id="step1"></div>
+        <div class="step-dot" id="step2"></div>
+        <div class="step-dot" id="step3"></div>
+      </div>
+      <div class="form-title">Créez votre boutique</div>
+      <div class="form-sub">Configurez votre CRM WhatsApp en 2 minutes</div>
+
+      <!-- Étape 1: Infos boutique -->
+      <div id="reg-step1">
+        <div class="form-group">
+          <label>Nom de la boutique</label>
+          <input id="reg-shop-name" type="text" placeholder="Ex: Boutique Awa Mode"/>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Type</label>
+            <select id="reg-shop-type">
+              <option value="ecommerce">🛍️ E-commerce</option>
+              <option value="immobilier">🏠 Immobilier</option>
+              <option value="hotel">🏨 Hôtel</option>
+              <option value="autre">📦 Autre</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Pays</label>
+            <select id="reg-country">
+              <option value="CI">🇨🇮 Côte d'Ivoire</option>
+              <option value="SN">🇸🇳 Sénégal</option>
+              <option value="BJ">🇧🇯 Bénin</option>
+              <option value="TG">🇹🇬 Togo</option>
+              <option value="ML">🇲🇱 Mali</option>
+              <option value="BF">🇧🇫 Burkina Faso</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Numéro WhatsApp professionnel</label>
+          <input id="reg-phone" type="tel" placeholder="+225 07 00 00 00"/>
+        </div>
+        <button class="btn-form" onclick="regStep2()">Continuer →</button>
+      </div>
+
+      <!-- Étape 2: Compte -->
+      <div id="reg-step2" style="display:none">
+        <div class="form-group">
+          <label>Email professionnel</label>
+          <input id="reg-email" type="email" placeholder="vous@boutique.com"/>
+        </div>
+        <div class="form-group">
+          <label>Mot de passe</label>
+          <input id="reg-password" type="password" placeholder="Min. 8 caractères"/>
+        </div>
+        <div id="reg-err" class="err">Erreur lors de l'inscription</div>
+        <button class="btn-form" id="reg-btn" onclick="doRegister()">Créer mon compte ✓</button>
+      </div>
+
+      <div class="form-link">
+        Déjà inscrit? <a onclick="showScreen('screen-login')">Se connecter</a>
+        · <a onclick="showScreen('screen-landing')" style="color:var(--muted)">← Retour</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN 3 — LOGIN
+══════════════════════════════════════ -->
+<div id="screen-login" class="screen">
+  <div style="display:flex;align-items:center;justify-content:center;flex:1;padding:2rem;">
+    <div class="form-card">
+      <div class="form-title">Bon retour 👋</div>
+      <div class="form-sub">Connectez-vous à votre tableau de bord</div>
+      <div class="form-group">
+        <label>Email</label>
+        <input id="login-email" type="email" placeholder="vous@boutique.com"/>
+      </div>
+      <div class="form-group">
+        <label>Mot de passe</label>
+        <input id="login-password" type="password" placeholder="••••••••"/>
+      </div>
+      <div id="login-err" class="err">Email ou mot de passe incorrect</div>
+      <button class="btn-form" id="login-btn" onclick="doLogin()">Se connecter</button>
+      <div class="form-link">
+        Pas de compte? <a onclick="showScreen('screen-register')">S'inscrire gratuitement</a>
+        · <a onclick="showScreen('screen-landing')" style="color:var(--muted)">← Retour</a>
+      </div>
+      <!-- Demo quick login -->
+      <div style="margin-top:1rem;padding:.8rem;background:var(--bg3);border-radius:10px;font-size:.78rem;color:var(--muted);text-align:center;">
+        🎯 <b style="color:var(--text)">Mode démo</b> — Cliquez pour explorer le dashboard
+        <br/><button onclick="demoLogin()" style="margin-top:.5rem;background:var(--orange);color:#fff;border:none;padding:.4rem 1rem;border-radius:8px;cursor:pointer;font-size:.78rem;">Accès démo →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN 4 — APP (USER DASHBOARD)
+══════════════════════════════════════ -->
+<div id="screen-app" class="screen">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="brand">CRM Lite</div>
+      <div class="plan-badge" id="plan-badge">PRO</div>
+    </div>
+    <nav>
+      <div class="nav-section">Principal</div>
+      <button class="nav-item active" onclick="switchTab('dashboa
