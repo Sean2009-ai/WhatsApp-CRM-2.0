@@ -15,7 +15,7 @@ from flask_jwt_extended import (
     JWTManager, create_access_token, jwt_required, get_jwt_identity, get_jwt
 )
 from supabase import create_client, Client
-from anthropic import Anthropic
+from openai import OpenAI
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -34,7 +34,10 @@ supabase: Client = create_client(
     os.getenv("SUPABASE_URL", ""),
     os.getenv("SUPABASE_SERVICE_KEY", "")
 )
-anthropic_client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY", ""))
+grok_client = OpenAI(
+    api_key=os.getenv("GROK_API_KEY", ""),
+    base_url="https://api.x.ai/v1",
+)
 
 ADMIN_SECRET = os.getenv("ADMIN_SECRET", "admin-secret-change-me")
 API_URL      = os.getenv("API_URL", "http://localhost:5000")
@@ -466,16 +469,15 @@ Historique: {contact.get('total_orders',0)} commandes, {contact.get('total_spent
 Réponds UNIQUEMENT en JSON:
 {{"message":"réponse WhatsApp","intent":"achat|info|support|spam|inconnu","lead_score":0,"detected_city":null,"wants_to_order":false,"order_description":null,"order_amount":0,"conversation_summary":"résumé 1 phrase"}}"""
 
-    messages = (history or [])[-10:] + [{"role": "user", "content": message}]
+    messages_payload = [{"role": "system", "content": system}] + (history or [])[-10:] + [{"role": "user", "content": message}]
 
     try:
-        resp = anthropic_client.messages.create(
-            model="claude-sonnet-4-20250514",
+        resp = grok_client.chat.completions.create(
+            model="grok-3",
             max_tokens=600,
-            system=system,
-            messages=messages,
+            messages=messages_payload,
         )
-        raw = resp.content[0].text.replace("```json", "").replace("```", "").strip()
+        raw = resp.choices[0].message.content.replace("```json", "").replace("```", "").strip()
         return json.loads(raw)
     except Exception as e:
         print(f"[AI ERROR] {e}")
@@ -535,236 +537,3 @@ def create_cinetpay_link(api_key: str, site_id: str, order_id: str,
         data = resp.json()
         if data.get("code") == "201":
             return {"success": True, "url": data["data"]["payment_url"], "token": data["data"]["payment_token"]}
-        return {"success": False, "error": data.get("message")}
-    except Exception as e:
-        return {"success": False, "error": str(e)}
-
-
-def create_fedapay_link(secret_key: str, order_id: str, amount: float,
-                         currency: str, description: str) -> dict:
-    try:
-        headers = {"Authorization": f"Bearer {secret_key}", "Content-Type": "application/json"}
-        resp = requests.post("https://api.fedapay.com/v1/transactions", json={
-            "description": description, "amount": int(amount),
-            "currency": {"iso": currency},
-            "callback_url": f"{API_URL}/api/payment/webhook/fedapay",
-            "customer": {"email": f"{order_id}@whatsapp.crm"},
-        }, headers=headers, timeout=15)
-        txn = resp.json().get("v1", {}).get("transaction", {})
-        if not txn.get("id"):
-            return {"success": False, "error": "FedaPay: transaction non créée"}
-        token_res = requests.post(
-            f"https://api.fedapay.com/v1/transactions/{txn['id']}/token",
-            headers=headers, timeout=15
-        )
-        token = token_res.json().get("token")
-        return {"success": True, "url": f"https://checkout.fedapay.com/{token}", "txn_id": txn["id"]}
-    except Exception as e:
-        return {"success": False, "error": str(e)}
-
-
-def create_hub2_link(api_key: str, order_id: str, amount: float,
-                      currency: str, description: str) -> dict:
-    try:
-        resp = requests.post("https://api.hub2.io/v1/payment-intents", json={
-            "amount": int(amount), "currency": currency,
-            "description": description, "reference": order_id,
-            "webhook_url": f"{API_URL}/api/payment/webhook/hub2",
-        }, headers={"Authorization": f"Bearer {api_key}"}, timeout=15)
-        data = resp.json()
-        return {"success": True, "url": data["payment_url"], "intent_id": data["id"]}
-    except Exception as e:
-        return {"success": False, "error": str(e)}
-
-
-def create_payment_link(provider: str, profile: dict, order_id: str,
-                         amount: float, description: str) -> dict:
-    currency = profile.get("currency", "XOF")
-    api_key  = profile.get("payment_api_key", "")
-    site_id  = profile.get("payment_site_id", "")
-
-    if provider == "cinetpay":
-        return create_cinetpay_link(api_key, site_id, order_id, amount, currency, description)
-    elif provider == "fedapay":
-        return create_fedapay_link(api_key, order_id, amount, currency, description)
-    elif provider == "hub2":
-        return create_hub2_link(api_key, order_id, amount, currency, description)
-    return {"success": False, "error": "Provider inconnu"}
-
-
-def create_order_and_send_link(profile: dict, contact: dict, conversation: dict,
-                                ai_result: dict, chat_id: str):
-    ref = order_number()
-    amount = float(ai_result["order_amount"])
-    description = ai_result.get("order_description", "Commande")
-
-    # Créer la commande
-    order_res = supabase.table("orders").insert({
-        "profile_id": profile["id"],
-        "contact_id": contact["id"],
-        "conversation_id": conversation["id"],
-        "order_number": ref,
-        "description": description,
-        "amount": amount,
-        "currency": profile.get("currency", "XOF"),
-        "payment_provider": profile.get("payment_provider", "cinetpay"),
-        "payment_reference": ref,
-        "payment_status": "pending",
-    }).execute()
-    order = order_res.data[0]
-
-    # Générer le lien
-    pay_result = create_payment_link(profile.get("payment_provider", "cinetpay"), profile, ref, amount, description)
-
-    if pay_result["success"]:
-        supabase.table("orders").update({
-            "payment_link": pay_result["url"],
-        }).eq("id", order["id"]).execute()
-
-        supabase.table("conversations").update({"status": "waiting_payment"}).eq("id", conversation["id"]).execute()
-
-        send_payment_link_whatsapp(
-            profile["green_api_instance_id"], profile["green_api_token"],
-            chat_id, ref, amount, pay_result["url"], profile.get("currency", "XOF")
-        )
-
-
-# ═══════════════════════════════════════════════════════
-# WEBHOOKS PAIEMENT — Validation automatique
-# ═══════════════════════════════════════════════════════
-
-def confirm_payment_by_reference(reference: str):
-    """Confirme une commande payée et notifie le client"""
-    res = supabase.table("orders")\
-        .select("*, profiles!inner(*), contacts(whatsapp_number)")\
-        .eq("payment_reference", reference).execute()
-    if not res.data:
-        return
-    order = res.data[0]
-    if order["payment_status"] == "paid":
-        return  # déjà traité
-
-    # Marquer payé
-    supabase.table("orders").update({
-        "payment_status": "paid",
-        "payment_confirmed_at": datetime.utcnow().isoformat(),
-    }).eq("id", order["id"]).execute()
-
-    # Fermer conversation
-    if order.get("conversation_id"):
-        supabase.table("conversations").update({"status": "completed"})\
-            .eq("id", order["conversation_id"]).execute()
-
-    # Notifier le client WhatsApp
-    p = order["profiles"]
-    c = order.get("contacts", {})
-    if p.get("green_api_instance_id") and p.get("green_api_token") and c.get("whatsapp_number"):
-        send_payment_confirmation_whatsapp(
-            p["green_api_instance_id"], p["green_api_token"],
-            c["whatsapp_number"], order["order_number"],
-            float(order["amount"]), order.get("currency", "XOF")
-        )
-
-
-@app.route("/api/payment/webhook/cinetpay", methods=["POST"])
-def cinetpay_webhook():
-    data = request.json or {}
-    if data.get("status") == "ACCEPTED":
-        confirm_payment_by_reference(data.get("transaction_id", ""))
-    return "OK", 200
-
-
-@app.route("/api/payment/webhook/fedapay", methods=["POST"])
-def fedapay_webhook():
-    data = request.json or {}
-    if data.get("name") == "transaction.approved":
-        ref = (data.get("entity") or {}).get("reference", "")
-        confirm_payment_by_reference(ref)
-    return jsonify({"received": True})
-
-
-@app.route("/api/payment/webhook/hub2", methods=["POST"])
-def hub2_webhook():
-    data = request.json or {}
-    if data.get("status") == "succeeded":
-        confirm_payment_by_reference(data.get("reference", ""))
-    return jsonify({"received": True})
-
-
-# ═══════════════════════════════════════════════════════
-# ADMIN — Gestion des boutiques
-# ═══════════════════════════════════════════════════════
-
-@app.route("/api/admin/stats", methods=["GET"])
-@admin_required
-def admin_stats():
-    shops   = supabase.table("profiles").select("id,is_active,plan,created_at").execute().data or []
-    orders  = supabase.table("orders").select("amount,payment_status").execute().data or []
-    contacts= supabase.table("contacts").select("id").execute().data or []
-
-    paid = [o for o in orders if o["payment_status"] == "paid"]
-    total_revenue = sum(float(o["amount"]) for o in paid)
-
-    return jsonify({
-        "total_shops":   len(shops),
-        "active_shops":  sum(1 for s in shops if s["is_active"]),
-        "trial_shops":   sum(1 for s in shops if s["plan"] == "trial"),
-        "total_revenue": total_revenue,
-        "total_orders":  len(orders),
-        "total_contacts":len(contacts),
-    })
-
-
-@app.route("/api/admin/shops", methods=["GET"])
-@admin_required
-def admin_list_shops():
-    res = supabase.table("profiles")\
-        .select("id,shop_name,shop_type,email,phone,country,whatsapp_number,payment_provider,plan,is_active,green_api_instance_id,created_at")\
-        .order("created_at", desc=True).execute()
-    return jsonify({"shops": res.data})
-
-
-@app.route("/api/admin/shops/<shop_id>/toggle", methods=["PATCH"])
-@admin_required
-def admin_toggle_shop(shop_id):
-    res = supabase.table("profiles").select("is_active,shop_name").eq("id", shop_id).single().execute()
-    if not res.data:
-        return jsonify({"error": "Boutique introuvable"}), 404
-    new_status = not res.data["is_active"]
-    supabase.table("profiles").update({"is_active": new_status}).eq("id", shop_id).execute()
-    supabase.table("admin_logs").insert({
-        "admin_email": request.headers.get("X-Admin-Email", "admin"),
-        "action": "BLOCK_SHOP" if not new_status else "UNBLOCK_SHOP",
-        "target_profile_id": shop_id,
-        "details": {"shop_name": res.data["shop_name"]},
-    }).execute()
-    return jsonify({"success": True, "is_active": new_status})
-
-
-@app.route("/api/admin/shops/<shop_id>", methods=["DELETE"])
-@admin_required
-def admin_delete_shop(shop_id):
-    supabase.table("profiles").delete().eq("id", shop_id).execute()
-    supabase.table("admin_logs").insert({
-        "admin_email": request.headers.get("X-Admin-Email", "admin"),
-        "action": "DELETE_SHOP",
-        "target_profile_id": shop_id,
-    }).execute()
-    return jsonify({"success": True})
-
-
-@app.route("/api/admin/logs", methods=["GET"])
-@admin_required
-def admin_logs():
-    res = supabase.table("admin_logs").select("*").order("created_at", desc=True).limit(100).execute()
-    return jsonify(res.data)
-
-
-# ═══════════════════════════════════════════════════════
-# LANCEMENT
-# ═══════════════════════════════════════════════════════
-if __name__ == "__main__":
-    port = int(os.getenv("PORT", 5000))
-    debug = os.getenv("FLASK_ENV", "production") == "development"
-    print(f"🚀 WhatsApp CRM Lite démarré sur http://0.0.0.0:{port}")
-    app.run(host="0.0.0.0", port=port, debug=debug)
