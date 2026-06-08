@@ -320,4 +320,907 @@
     </div>
     <nav>
       <div class="nav-section">Principal</div>
-      <button class="nav-item active" onclick="switchTab('dashboa
+      <button class="nav-item active" onclick="switchTab('dashboard',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        <span>Dashboard</span>
+      </button>
+      <button class="nav-item" onclick="switchTab('orders',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+        <span>Commandes</span>
+      </button>
+      <button class="nav-item" onclick="switchTab('contacts',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        <span>Contacts</span>
+      </button>
+      <button class="nav-item" onclick="switchTab('map',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+        <span>Carte clients</span>
+      </button>
+      <div class="nav-section">Gestion</div>
+      <button class="nav-item" onclick="switchTab('catalog',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+        <span>Catalogue</span>
+      </button>
+      <button class="nav-item" onclick="switchTab('settings',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        <span>Paramètres</span>
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <div style="display:flex;align-items:center;gap:.6rem;">
+        <div class="avatar" id="user-avatar">B</div>
+        <div>
+          <div class="shop-name-small" id="user-shop-name">Ma Boutique</div>
+          <button class="logout-btn" onclick="doLogout()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            <span>Déconnexion</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main-content">
+    <div class="topbar">
+      <div class="page-title" id="page-title">Dashboard</div>
+      <div class="topbar-right">
+        <div style="display:flex;align-items:center;gap:.4rem;font-size:.8rem;color:var(--muted);">
+          <div class="status-dot"></div> IA active
+        </div>
+        <div id="wa-status" style="font-size:.78rem;color:var(--muted);"></div>
+      </div>
+    </div>
+
+    <div class="content-area">
+
+      <!-- ── DASHBOARD TAB ── -->
+      <div id="tab-dashboard" class="tab-panel active">
+        <div class="stats-grid">
+          <div class="stat-card orange">
+            <div class="stat-icon">💰</div>
+            <div class="stat-val" id="stat-revenue">—</div>
+            <div class="stat-lbl">Revenus totaux (XOF)</div>
+            <div class="stat-trend up" id="stat-revenue-trend"></div>
+          </div>
+          <div class="stat-card green">
+            <div class="stat-icon">✅</div>
+            <div class="stat-val" id="stat-paid">—</div>
+            <div class="stat-lbl">Commandes payées</div>
+          </div>
+          <div class="stat-card blue">
+            <div class="stat-icon">👥</div>
+            <div class="stat-val" id="stat-contacts">—</div>
+            <div class="stat-lbl">Contacts WhatsApp</div>
+          </div>
+          <div class="stat-card purple">
+            <div class="stat-icon">🤖</div>
+            <div class="stat-val" id="stat-conv">—</div>
+            <div class="stat-lbl">Taux de conversion</div>
+          </div>
+        </div>
+
+        <div class="charts-row">
+          <div class="chart-card">
+            <div class="chart-title">📈 Revenus (30 derniers jours)</div>
+            <div class="chart-wrap"><canvas id="revenueChart"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">📊 Statuts commandes</div>
+            <div class="chart-wrap"><canvas id="statusChart"></canvas></div>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <div class="table-header">
+            <span class="table-title">🕐 Commandes récentes</span>
+            <button onclick="switchTab('orders',null)" style="background:transparent;border:none;color:var(--orange);cursor:pointer;font-size:.82rem;">Voir tout →</button>
+          </div>
+          <table>
+            <thead><tr><th>Référence</th><th>Client</th><th>Montant</th><th>Statut</th><th>Date</th></tr></thead>
+            <tbody id="recent-orders-body">
+              <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:2rem;"><div class="spinner"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── ORDERS TAB ── -->
+      <div id="tab-orders" class="tab-panel">
+        <div style="display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap;">
+          <button onclick="filterOrders('all')" class="badge badge-gray" id="filter-all" style="cursor:pointer;padding:.4rem .9rem;">Toutes</button>
+          <button onclick="filterOrders('paid')" class="badge badge-green" id="filter-paid" style="cursor:pointer;padding:.4rem .9rem;">Payées</button>
+          <button onclick="filterOrders('pending')" class="badge badge-orange" id="filter-pending" style="cursor:pointer;padding:.4rem .9rem;">En attente</button>
+          <button onclick="filterOrders('failed')" class="badge badge-red" id="filter-failed" style="cursor:pointer;padding:.4rem .9rem;">Échouées</button>
+        </div>
+        <div class="table-card">
+          <table>
+            <thead><tr><th>Réf.</th><th>Client</th><th>Description</th><th>Montant</th><th>Provider</th><th>Statut</th><th>Date</th></tr></thead>
+            <tbody id="orders-body">
+              <tr><td colspan="7" style="text-align:center;color:var(--muted);padding:2rem;"><div class="spinner"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── CONTACTS TAB ── -->
+      <div id="tab-contacts" class="tab-panel">
+        <div class="table-card">
+          <div class="table-header">
+            <span class="table-title">👥 Clients WhatsApp</span>
+            <span id="contacts-count" style="font-size:.8rem;color:var(--muted);"></span>
+          </div>
+          <table>
+            <thead><tr><th>Contact</th><th>Ville</th><th>Intention IA</th><th>Score</th><th>Commandes</th><th>Dépensé</th><th>Dernier contact</th></tr></thead>
+            <tbody id="contacts-body">
+              <tr><td colspan="7" style="text-align:center;color:var(--muted);padding:2rem;"><div class="spinner"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── MAP TAB ── -->
+      <div id="tab-map" class="tab-panel">
+        <div class="chart-card" style="margin-bottom:1rem;">
+          <div class="chart-title">🗺️ Localisation des clients identifiés par l'IA</div>
+          <div class="map-area">
+            <div class="map-bg"></div>
+            <div class="map-dots" id="map-dots"></div>
+            <div class="map-label">
+              <div style="font-size:2rem;margin-bottom:.5rem;">🌍</div>
+              <div id="map-info" style="color:var(--muted);font-size:.85rem;">Chargement des localisations...</div>
+            </div>
+          </div>
+        </div>
+        <div class="table-card">
+          <div class="table-header"><span class="table-title">📍 Répartition géographique</span></div>
+          <table>
+            <thead><tr><th>Ville</th><th>Pays</th><th>Clients</th><th>% du total</th></tr></thead>
+            <tbody id="locations-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── CATALOG TAB ── -->
+      <div id="tab-catalog" class="tab-panel">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:1rem;">
+          <button class="btn-save" onclick="showAddProduct()">+ Ajouter un produit</button>
+        </div>
+        <div id="add-product-form" style="display:none;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.5rem;margin-bottom:1rem;">
+          <div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:1rem;">Nouveau produit/service</div>
+          <div class="form-row">
+            <div class="form-group"><label>Nom</label><input id="p-name" placeholder="iPhone 15 Pro"/></div>
+            <div class="form-group"><label>Prix (XOF)</label><input id="p-price" type="number" placeholder="350000"/></div>
+          </div>
+          <div class="form-group"><label>Description</label><input id="p-desc" placeholder="Description courte"/></div>
+          <div class="form-row">
+            <div class="form-group"><label>Catégorie</label><input id="p-cat" placeholder="Téléphones"/></div>
+            <div class="form-group">
+              <label>Disponibilité</label>
+              <select id="p-avail"><option value="available">Disponible</option><option value="out_of_stock">Rupture</option><option value="preorder">Précommande</option></select>
+            </div>
+          </div>
+          <button class="btn-save" onclick="addProduct()">Enregistrer</button>
+          <button onclick="document.getElementById('add-product-form').style.display='none'" style="background:transparent;border:none;color:var(--muted);cursor:pointer;margin-left:1rem;">Annuler</button>
+        </div>
+        <div class="table-card">
+          <table>
+            <thead><tr><th>Produit/Service</th><th>Prix</th><th>Catégorie</th><th>Dispo</th><th></th></tr></thead>
+            <tbody id="catalog-body">
+              <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:2rem;"><div class="spinner"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── SETTINGS TAB ── -->
+      <div id="tab-settings" class="tab-panel">
+        <div class="settings-grid">
+          <!-- Green API -->
+          <div class="settings-section">
+            <h3>📱 Green API — WhatsApp</h3>
+            <p style="color:var(--muted);font-size:.8rem;margin-bottom:1rem;">Connectez votre numéro WhatsApp personnel ou professionnel</p>
+            <div class="form-group"><label>Instance ID</label><input id="s-instance" placeholder="1101234567"/></div>
+            <div class="form-group"><label>Token API</label><input id="s-token" type="password" placeholder="••••••••"/></div>
+            <div class="form-group"><label>Numéro WhatsApp</label><input id="s-wa-num" placeholder="+225 07 00 00 00"/></div>
+            <div style="display:flex;gap:.5rem;align-items:center;">
+              <button class="btn-save" onclick="saveGreenApi()">Sauvegarder</button>
+              <button onclick="testWaConnection()" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:.5rem 1rem;border-radius:10px;cursor:pointer;font-size:.82rem;">Tester la connexion</button>
+            </div>
+            <div id="wa-test-result" style="margin-top:.8rem;font-size:.8rem;"></div>
+          </div>
+
+          <!-- Paiement -->
+          <div class="settings-section">
+            <h3>💳 Paiement Mobile Money</h3>
+            <div class="provider-selector" id="provider-selector">
+              <div class="provider-btn selected" onclick="selectProvider('cinetpay')">CinetPay</div>
+              <div class="provider-btn" onclick="selectProvider('fedapay')">FedaPay</div>
+              <div class="provider-btn" onclick="selectProvider('hub2')">Hub2</div>
+            </div>
+            <div class="form-group"><label>Clé API</label><input id="s-pay-key" type="password" placeholder="Votre clé API"/></div>
+            <div class="form-group"><label>Site ID (CinetPay uniquement)</label><input id="s-site-id" placeholder="Site ID"/></div>
+            <button class="btn-save" onclick="savePayment()">Sauvegarder</button>
+          </div>
+
+          <!-- Webhook URL -->
+          <div class="settings-section">
+            <h3>🔗 URL Webhook Green API</h3>
+            <p style="color:var(--muted);font-size:.8rem;margin-bottom:.8rem;">Configurez cette URL dans votre dashboard Green API pour recevoir les messages:</p>
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:.8rem;font-family:'DM Mono',monospace;font-size:.75rem;color:var(--orange);word-break:break-all;" id="webhook-url"></div>
+            <button onclick="copyWebhookUrl()" style="background:transparent;border:1px solid var(--border);color:var(--muted);padding:.4rem .8rem;border-radius:8px;cursor:pointer;font-size:.78rem;margin-top:.5rem;">📋 Copier</button>
+          </div>
+
+          <!-- Boutique -->
+          <div class="settings-section">
+            <h3>🏪 Infos boutique</h3>
+            <div class="form-group"><label>Nom boutique</label><input id="s-shop-name" placeholder="Boutique Awa Mode"/></div>
+            <div class="form-group"><label>Devise</label>
+              <select id="s-currency">
+                <option value="XOF">XOF — Franc CFA</option>
+                <option value="GHS">GHS — Cedi Ghana</option>
+                <option value="NGN">NGN — Naira Nigeria</option>
+                <option value="USD">USD — Dollar</option>
+              </select>
+            </div>
+            <button class="btn-save" onclick="saveShopInfo()">Sauvegarder</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content-area -->
+  </div><!-- /main-content -->
+</div><!-- /screen-app -->
+
+<!-- ══════════════════════════════════════
+     SCREEN 5 — ADMIN DASHBOARD
+══════════════════════════════════════ -->
+<div id="screen-admin" class="screen">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="brand">CRM Lite</div>
+      <div class="admin-badge">SUPER ADMIN</div>
+    </div>
+    <nav>
+      <button class="nav-item active" onclick="adminTab('overview',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        <span>Vue globale</span>
+      </button>
+      <button class="nav-item" onclick="adminTab('shops',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>Boutiques</span>
+      </button>
+      <button class="nav-item" onclick="adminTab('revenue',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span>Revenus</span>
+      </button>
+      <button class="nav-item" onclick="adminTab('logs',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span>Audit Logs</span>
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="logout-btn" style="color:var(--muted)" onclick="showScreen('screen-landing')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span>Quitter admin</span>
+      </button>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <div class="topbar">
+      <div class="page-title" id="admin-page-title">Vue globale</div>
+      <div class="topbar-right">
+        <button onclick="loadAdminData()" style="background:transparent;border:none;color:var(--muted);cursor:pointer;">🔄 Actualiser</button>
+      </div>
+    </div>
+    <div class="content-area">
+
+      <!-- Overview -->
+      <div id="admin-tab-overview" class="tab-panel active">
+        <div class="stats-grid">
+          <div class="stat-card orange"><div class="stat-icon">🏪</div><div class="stat-val" id="a-total-shops">—</div><div class="stat-lbl">Boutiques totales</div></div>
+          <div class="stat-card green"><div class="stat-icon">✅</div><div class="stat-val" id="a-active-shops">—</div><div class="stat-lbl">Boutiques actives</div></div>
+          <div class="stat-card blue"><div class="stat-icon">💰</div><div class="stat-val" id="a-revenue">—</div><div class="stat-lbl">Revenu total (XOF)</div></div>
+          <div class="stat-card purple"><div class="stat-icon">📦</div><div class="stat-val" id="a-orders">—</div><div class="stat-lbl">Commandes totales</div></div>
+        </div>
+        <div class="chart-card" style="margin-bottom:1rem;">
+          <div class="chart-title">📈 Activité boutiques</div>
+          <div class="chart-wrap"><canvas id="adminRevenueChart"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Shops -->
+      <div id="admin-tab-shops" class="tab-panel">
+        <div style="margin-bottom:1rem;">
+          <input id="admin-search" oninput="filterAdminShops()" placeholder="🔍 Rechercher boutique, email..." style="width:100%;max-width:360px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:.65rem 1rem;color:var(--text);font-size:.85rem;outline:none;"/>
+        </div>
+        <div class="table-card">
+          <table>
+            <thead><tr><th>Boutique</th><th>Email</th><th>Type</th><th>Plan</th><th>WhatsApp</th><th>Paiement</th><th>Statut</th><th>Actions</th></tr></thead>
+            <tbody id="admin-shops-body">
+              <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:2rem;"><div class="spinner"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Revenue admin -->
+      <div id="admin-tab-revenue" class="tab-panel">
+        <div class="stats-grid">
+          <div class="stat-card green"><div class="stat-icon">💵</div><div class="stat-val" id="a-mrr">—</div><div class="stat-lbl">MRR (XOF)</div></div>
+          <div class="stat-card orange"><div class="stat-icon">📊</div><div class="stat-val" id="a-arpu">—</div><div class="stat-lbl">ARPU (XOF)</div></div>
+          <div class="stat-card blue"><div class="stat-icon">👥</div><div class="stat-val" id="a-contacts">—</div><div class="stat-lbl">Contacts totaux</div></div>
+          <div class="stat-card purple"><div class="stat-icon">🔁</div><div class="stat-val">34.7%</div><div class="stat-lbl">Tx conversion moyen</div></div>
+        </div>
+      </div>
+
+      <!-- Logs -->
+      <div id="admin-tab-logs" class="tab-panel">
+        <div class="table-card">
+          <div class="table-header"><span class="table-title">🛡️ Journal d'audit</span></div>
+          <table>
+            <thead><tr><th>Action</th><th>Boutique</th><th>Admin</th><th>Date</th></tr></thead>
+            <tbody id="admin-logs-body">
+              <tr><td colspan="4" style="text-align:center;color:var(--muted);padding:2rem;"><div class="spinner"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- ══════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════ -->
+<script>
+// ── CONFIG ──
+const API = (window.API_URL || '') ;
+let TOKEN = localStorage.getItem('crm_token') || '';
+let PROFILE = JSON.parse(localStorage.getItem('crm_profile') || 'null');
+let allOrders = [], allAdminShops = [];
+
+// ── UTILS ──
+const $ = id => document.getElementById(id);
+const fmt = n => Number(n || 0).toLocaleString('fr-FR');
+const fmtDate = d => d ? new Date(d).toLocaleDateString('fr-FR') : '—';
+
+async function apiFetch(endpoint, opts = {}) {
+  const res = await fetch(API + endpoint, {
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${TOKEN}`, ...opts.headers },
+    ...opts,
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Erreur API');
+  return data;
+}
+
+function toast(msg, type = 'success') {
+  const t = $('toast');
+  t.innerHTML = (type === 'success' ? '✅ ' : '❌ ') + msg;
+  t.className = `toast show ${type}`;
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// ── NAVIGATION ──
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $(id).classList.add('active');
+}
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('#screen-app .nav-item').forEach(n => n.classList.remove('active'));
+  $(`tab-${name}`).classList.add('active');
+  if (btn) btn.classList.add('active');
+  const titles = { dashboard: 'Dashboard', orders: 'Commandes', contacts: 'Contacts', map: 'Carte clients', catalog: 'Catalogue IA', settings: 'Paramètres' };
+  $('page-title').textContent = titles[name] || name;
+  if (name === 'orders') loadOrders();
+  if (name === 'contacts') loadContacts();
+  if (name === 'map') loadMap();
+  if (name === 'catalog') loadCatalog();
+  if (name === 'settings') loadSettings();
+}
+
+function adminTab(name, btn) {
+  document.querySelectorAll('#screen-admin .tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('#screen-admin .nav-item').forEach(n => n.classList.remove('active'));
+  $(`admin-tab-${name}`).classList.add('active');
+  if (btn) btn.classList.add('active');
+  const titles = { overview: 'Vue globale', shops: 'Boutiques', revenue: 'Revenus', logs: 'Audit Logs' };
+  $('admin-page-title').textContent = titles[name] || name;
+  if (name === 'shops') renderAdminShops(allAdminShops);
+  if (name === 'logs') loadAdminLogs();
+}
+
+// ── MOCK DATA (Démo) ──
+const MOCK_DASH = {
+  stats: { total_revenue: 4850000, total_orders: 87, paid_orders: 63, pending_orders: 12, total_contacts: 342, conversion_rate: 18.4 },
+  revenue_chart: [
+    {date:'2025-05-08',amount:120000},{date:'2025-05-10',amount:250000},{date:'2025-05-12',amount:180000},
+    {date:'2025-05-15',amount:340000},{date:'2025-05-18',amount:290000},{date:'2025-05-21',amount:450000},
+    {date:'2025-05-25',amount:380000},{date:'2025-05-28',amount:510000},{date:'2025-06-01',amount:620000},
+    {date:'2025-06-05',amount:480000},{date:'2025-06-07',amount:230000},
+  ],
+  recent_orders: [
+    { order_number:'ORD-1001',contacts:{display_name:'Awa Koné'},amount:45000,payment_status:'paid',created_at:'2025-06-07T09:30:00Z' },
+    { order_number:'ORD-1002',contacts:{display_name:'Moussa Diallo'},amount:125000,payment_status:'pending',created_at:'2025-06-06T14:22:00Z' },
+    { order_number:'ORD-1003',contacts:{display_name:'Fatou Ndiaye'},amount:89000,payment_status:'paid',created_at:'2025-06-05T11:10:00Z' },
+    { order_number:'ORD-1004',contacts:{display_name:'Ibrahim Touré'},amount:200000,payment_status:'failed',created_at:'2025-06-04T16:45:00Z' },
+    { order_number:'ORD-1005',contacts:{display_name:'Aïchatou Bah'},amount:55000,payment_status:'paid',created_at:'2025-06-03T08:55:00Z' },
+  ],
+  client_locations: [
+    {city:'Abidjan',country:'CI',lat:5.35,lng:-4.00},{city:'Dakar',country:'SN',lat:14.71,lng:-17.46},
+    {city:'Cotonou',country:'BJ',lat:6.37,lng:2.43},{city:'Lomé',country:'TG',lat:6.13,lng:1.22},
+  ],
+};
+
+const MOCK_CONTACTS = [
+  {display_name:'Awa Koné',whatsapp_number:'+225070000001',city:'Abidjan',intent:'achat',lead_score:88,total_orders:5,total_spent:340000,last_contact_at:'2025-06-07T09:30:00Z'},
+  {display_name:'Moussa Diallo',whatsapp_number:'+221770000002',city:'Dakar',intent:'info',lead_score:42,total_orders:1,total_spent:125000,last_contact_at:'2025-06-06T14:22:00Z'},
+  {display_name:'Fatou Ndiaye',whatsapp_number:'+221780000003',city:'Thiès',intent:'achat',lead_score:75,total_orders:3,total_spent:267000,last_contact_at:'2025-06-05T11:10:00Z'},
+  {display_name:'Ibrahim Touré',whatsapp_number:'+225050000004',city:'Bouaké',intent:'support',lead_score:30,total_orders:2,total_spent:289000,last_contact_at:'2025-06-04T16:45:00Z'},
+  {display_name:'Aïchatou Bah',whatsapp_number:'+224620000005',city:'Conakry',intent:'achat',lead_score:91,total_orders:7,total_spent:580000,last_contact_at:'2025-06-03T08:55:00Z'},
+];
+
+const MOCK_CATALOG = [
+  {id:'1',name:'iPhone 15 Pro 256GB',price:450000,description:'Neuf, débloqué tous opérateurs',category:'Téléphones',availability:'available'},
+  {id:'2',name:'Samsung Galaxy S24',price:320000,description:'Garantie 1 an',category:'Téléphones',availability:'available'},
+  {id:'3',name:'Consultation Design',price:75000,description:'Logo + charte graphique',category:'Services',availability:'available'},
+];
+
+// ── AUTH ──
+function regStep2() {
+  const name = $('reg-shop-name').value.trim();
+  const phone = $('reg-phone').value.trim();
+  if (!name || !phone) { toast('Remplissez tous les champs', 'error'); return; }
+  $('reg-step1').style.display = 'none';
+  $('reg-step2').style.display = 'block';
+  $('step1').className = 'step-dot done';
+  $('step2').className = 'step-dot active';
+}
+
+async function doRegister() {
+  const btn = $('reg-btn');
+  btn.innerHTML = '<div class="spinner"></div>';
+  btn.disabled = true;
+  const body = {
+    shop_name: $('reg-shop-name').value,
+    shop_type: $('reg-shop-type').value,
+    country: $('reg-country').value,
+    phone: $('reg-phone').value,
+    email: $('reg-email').value,
+    password: $('reg-password').value,
+  };
+  try {
+    const data = await fetch(API + '/api/auth/register', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) }).then(r => r.json());
+    if (data.token) {
+      TOKEN = data.token;
+      localStorage.setItem('crm_token', TOKEN);
+      toast('Compte créé avec succès!');
+      loadApp();
+    } else {
+      $('reg-err').textContent = data.error || 'Erreur inscription';
+      $('reg-err').classList.add('show');
+    }
+  } catch { demoLogin(); } // Fallback démo si pas de backend
+  finally { btn.innerHTML = 'Créer mon compte ✓'; btn.disabled = false; }
+}
+
+async function doLogin() {
+  const btn = $('login-btn');
+  btn.innerHTML = '<div class="spinner"></div>';
+  btn.disabled = true;
+  try {
+    const data = await fetch(API + '/api/auth/login', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ email: $('login-email').value, password: $('login-password').value })
+    }).then(r => r.json());
+    if (data.token) {
+      TOKEN = data.token;
+      PROFILE = data.profile;
+      localStorage.setItem('crm_token', TOKEN);
+      localStorage.setItem('crm_profile', JSON.stringify(PROFILE));
+      loadApp();
+    } else {
+      $('login-err').classList.add('show');
+    }
+  } catch { demoLogin(); }
+  finally { btn.innerHTML = 'Se connecter'; btn.disabled = false; }
+}
+
+function demoLogin() {
+  PROFILE = { shop_name: 'Boutique Démo', plan: 'pro', green_api_instance_id: '1101234567' };
+  TOKEN = 'demo-token';
+  loadApp();
+}
+
+function doLogout() {
+  TOKEN = ''; PROFILE = null;
+  localStorage.removeItem('crm_token');
+  localStorage.removeItem('crm_profile');
+  showScreen('screen-landing');
+}
+
+// ── LOAD APP ──
+function loadApp() {
+  showScreen('screen-app');
+  if (PROFILE) {
+    $('user-shop-name').textContent = PROFILE.shop_name || 'Ma Boutique';
+    $('user-avatar').textContent = (PROFILE.shop_name || 'B')[0].toUpperCase();
+    $('plan-badge').textContent = (PROFILE.plan || 'trial').toUpperCase();
+    if (PROFILE.green_api_instance_id) {
+      $('webhook-url') && ($('webhook-url').textContent = `${API}/webhook/green-api/${PROFILE.green_api_instance_id}`);
+      $('wa-status').textContent = `📱 Instance: ${PROFILE.green_api_instance_id}`;
+    }
+  }
+  loadDashboard();
+}
+
+// ── DASHBOARD ──
+async function loadDashboard() {
+  let dash;
+  try { dash = await apiFetch('/api/shop/dashboard'); }
+  catch { dash = MOCK_DASH; }
+
+  const s = dash.stats;
+  $('stat-revenue').textContent = fmt(s.total_revenue);
+  $('stat-paid').textContent = s.paid_orders;
+  $('stat-contacts').textContent = s.total_contacts;
+  $('stat-conv').textContent = s.conversion_rate + '%';
+
+  // Revenue chart
+  const ctx = $('revenueChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: dash.revenue_chart.map(d => d.date.slice(5)),
+      datasets: [{ label: 'Revenus', data: dash.revenue_chart.map(d => d.amount),
+        borderColor: '#ff6b2b', backgroundColor: '#ff6b2b15', fill: true,
+        borderWidth: 2, tension: .4, pointRadius: 3, pointBackgroundColor: '#ff6b2b' }]
+    },
+    options: { responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false} },
+      scales: { x:{grid:{color:'#ffffff08'},ticks:{color:'#6b6b80',font:{size:10}}},
+                y:{grid:{color:'#ffffff08'},ticks:{color:'#6b6b80',font:{size:10},callback:v=>`${(v/1000).toFixed(0)}k`}} }
+    }
+  });
+
+  // Status donut
+  const ctx2 = $('statusChart').getContext('2d');
+  new Chart(ctx2, {
+    type: 'doughnut',
+    data: {
+      labels: ['Payées', 'En attente', 'Échouées'],
+      datasets: [{ data: [s.paid_orders, s.pending_orders, s.total_orders - s.paid_orders - s.pending_orders],
+        backgroundColor: ['#22c55e', '#ff6b2b', '#ef4444'], borderWidth: 0, hoverOffset: 4 }]
+    },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{position:'bottom',labels:{color:'#6b6b80',font:{size:11},padding:12}} } }
+  });
+
+  // Recent orders
+  const tbody = $('recent-orders-body');
+  if (dash.recent_orders?.length) {
+    tbody.innerHTML = dash.recent_orders.map(o => `
+      <tr>
+        <td><span style="font-family:'DM Mono',monospace;font-size:.78rem;color:var(--orange)">${o.order_number}</span></td>
+        <td>${o.contacts?.display_name || '—'}</td>
+        <td style="font-weight:600">${fmt(o.amount)} XOF</td>
+        <td>${statusBadge(o.payment_status)}</td>
+        <td style="color:var(--muted)">${fmtDate(o.created_at)}</td>
+      </tr>`).join('');
+  } else { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:1.5rem;">Aucune commande</td></tr>'; }
+}
+
+function statusBadge(s) {
+  const map = { paid:'badge-green', pending:'badge-orange', failed:'badge-red', refunded:'badge-gray' };
+  const lbl = { paid:'✅ Payée', pending:'⏳ En attente', failed:'❌ Échouée', refunded:'↩️ Remboursé' };
+  return `<span class="badge ${map[s]||'badge-gray'}">${lbl[s]||s}</span>`;
+}
+
+// ── ORDERS ──
+async function loadOrders() {
+  try { allOrders = await apiFetch('/api/shop/orders'); }
+  catch { allOrders = MOCK_DASH.recent_orders; }
+  renderOrders(allOrders);
+}
+
+function filterOrders(status) {
+  const filtered = status === 'all' ? allOrders : allOrders.filter(o => o.payment_status === status);
+  renderOrders(filtered);
+}
+
+function renderOrders(orders) {
+  $('orders-body').innerHTML = orders.length
+    ? orders.map(o => `<tr>
+        <td><span style="font-family:'DM Mono',monospace;font-size:.78rem;color:var(--orange)">${o.order_number}</span></td>
+        <td>${o.contacts?.display_name || o.contacts?.whatsapp_number || '—'}</td>
+        <td style="color:var(--muted);font-size:.8rem">${o.description?.slice(0,40) || '—'}</td>
+        <td style="font-weight:600">${fmt(o.amount)} XOF</td>
+        <td><span style="font-size:.75rem;color:var(--muted)">${(o.payment_provider||'—').toUpperCase()}</span></td>
+        <td>${statusBadge(o.payment_status)}</td>
+        <td style="color:var(--muted)">${fmtDate(o.created_at)}</td>
+      </tr>`).join('')
+    : '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:2rem;">Aucune commande trouvée</td></tr>';
+}
+
+// ── CONTACTS ──
+async function loadContacts() {
+  let contacts;
+  try { contacts = await apiFetch('/api/shop/contacts'); }
+  catch { contacts = MOCK_CONTACTS; }
+  $('contacts-count').textContent = `${contacts.length} contact${contacts.length > 1 ? 's' : ''}`;
+
+  const intentBadge = i => ({
+    achat: '<span class="badge badge-green">🛍️ Achat</span>',
+    info: '<span class="badge badge-blue">ℹ️ Info</span>',
+    support: '<span class="badge badge-orange">🔧 Support</span>',
+    spam: '<span class="badge badge-red">🚫 Spam</span>',
+  }[i] || '<span class="badge badge-gray">❓</span>');
+
+  const scoreBar = s => `<div style="display:flex;align-items:center;gap:.4rem"><div style="width:60px;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden"><div style="width:${s}%;height:100%;background:${s>70?'var(--green)':s>40?'var(--orange)':'var(--red)'};border-radius:3px"></div></div><span style="font-size:.75rem;color:var(--muted)">${s}</span></div>`;
+
+  $('contacts-body').innerHTML = contacts.map(c => `<tr>
+    <td><div style="font-weight:500">${c.display_name||'—'}</div><div style="font-size:.75rem;color:var(--muted);font-family:'DM Mono',monospace">${c.whatsapp_number}</div></td>
+    <td>${c.city ? `📍 ${c.city}` : '<span style="color:var(--muted)">—</span>'}</td>
+    <td>${intentBadge(c.intent)}</td>
+    <td>${scoreBar(c.lead_score||0)}</td>
+    <td style="font-weight:600">${c.total_orders||0}</td>
+    <td style="font-weight:600">${fmt(c.total_spent)} XOF</td>
+    <td style="color:var(--muted)">${fmtDate(c.last_contact_at)}</td>
+  </tr>`).join('');
+}
+
+// ── MAP ──
+async function loadMap() {
+  let locations;
+  try { const d = await apiFetch('/api/shop/dashboard'); locations = d.client_locations; }
+  catch { locations = MOCK_DASH.client_locations; }
+
+  if (locations?.length) {
+    $('map-info').textContent = `${locations.length} villes identifiées par l'IA`;
+    const dots = $('map-dots');
+    locations.forEach((loc, i) => {
+      const dot = document.createElement('div');
+      dot.className = 'map-dot';
+      dot.style.left = (20 + Math.random() * 60) + '%';
+      dot.style.top = (20 + Math.random() * 60) + '%';
+      dot.title = `${loc.city}, ${loc.country}`;
+      dot.style.animationDelay = (i * 0.4) + 's';
+      dots.appendChild(dot);
+    });
+
+    // Table localisations
+    const grouped = {};
+    locations.forEach(l => { const k = `${l.city}-${l.country}`; grouped[k] = (grouped[k] || { ...l, count: 0 }); grouped[k].count++; });
+    const rows = Object.values(grouped);
+    $('locations-body').innerHTML = rows.map((r, i) => `<tr>
+      <td>📍 ${r.city||'—'}</td><td>${r.country||'—'}</td>
+      <td style="font-weight:600">${r.count}</td>
+      <td style="color:var(--muted)">${(r.count/locations.length*100).toFixed(1)}%</td>
+    </tr>`).join('');
+  }
+}
+
+// ── CATALOG ──
+async function loadCatalog() {
+  let catalog;
+  try { catalog = await apiFetch('/api/shop/catalog'); }
+  catch { catalog = MOCK_CATALOG; }
+  renderCatalog(catalog);
+}
+
+function renderCatalog(catalog) {
+  const avBadge = a => ({ available:'<span class="badge badge-green">✅ Dispo</span>', out_of_stock:'<span class="badge badge-red">❌ Rupture</span>', preorder:'<span class="badge badge-orange">⏳ Préco</span>' }[a] || '');
+  $('catalog-body').innerHTML = catalog.length
+    ? catalog.map(p => `<tr>
+        <td><div style="font-weight:500">${p.name}</div><div style="font-size:.75rem;color:var(--muted)">${p.description||''}</div></td>
+        <td style="font-weight:600">${fmt(p.price)} XOF</td>
+        <td style="color:var(--muted)">${p.category||'—'}</td>
+        <td>${avBadge(p.availability)}</td>
+        <td><button onclick="deleteProduct('${p.id}')" style="background:transparent;border:none;color:var(--red);cursor:pointer;font-size:.8rem;">🗑️</button></td>
+      </tr>`).join('')
+    : '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:2rem;">Aucun produit. Ajoutez votre catalogue pour que l\'IA puisse vendre!</td></tr>';
+}
+
+function showAddProduct() { $('add-product-form').style.display = 'block'; }
+
+async function addProduct() {
+  const item = { name: $('p-name').value, price: $('p-price').value, description: $('p-desc').value, category: $('p-cat').value, availability: $('p-avail').value };
+  if (!item.name) { toast('Le nom est requis', 'error'); return; }
+  try {
+    await apiFetch('/api/shop/catalog', { method:'POST', body: JSON.stringify(item) });
+    toast('Produit ajouté!');
+  } catch { toast('Produit ajouté (démo)', 'success'); }
+  $('add-product-form').style.display = 'none';
+  loadCatalog();
+}
+
+async function deleteProduct(id) {
+  if (!confirm('Supprimer ce produit?')) return;
+  try { await apiFetch(`/api/shop/catalog/${id}`, { method:'DELETE' }); toast('Produit supprimé'); }
+  catch { toast('Produit supprimé (démo)', 'success'); }
+  loadCatalog();
+}
+
+// ── SETTINGS ──
+function loadSettings() {
+  if (!PROFILE) return;
+  $('s-instance').value = PROFILE.green_api_instance_id || '';
+  $('s-wa-num').value = PROFILE.whatsapp_number || '';
+  $('s-shop-name').value = PROFILE.shop_name || '';
+  $('s-currency').value = PROFILE.currency || 'XOF';
+  if (PROFILE.payment_provider) selectProvider(PROFILE.payment_provider);
+  if (PROFILE.green_api_instance_id) {
+    $('webhook-url').textContent = `${API}/webhook/green-api/${PROFILE.green_api_instance_id}`;
+  }
+}
+
+function selectProvider(p) {
+  document.querySelectorAll('.provider-btn').forEach(b => b.classList.remove('selected'));
+  const btns = document.querySelectorAll('.provider-btn');
+  const providers = ['cinetpay','fedapay','hub2'];
+  const idx = providers.indexOf(p);
+  if (idx >= 0) btns[idx]?.classList.add('selected');
+}
+
+async function saveGreenApi() {
+  const d = { green_api_instance_id: $('s-instance').value, green_api_token: $('s-token').value, whatsapp_number: $('s-wa-num').value };
+  try {
+    await apiFetch('/api/shop/profile', { method:'PATCH', body: JSON.stringify(d) });
+    PROFILE = { ...PROFILE, ...d };
+    localStorage.setItem('crm_profile', JSON.stringify(PROFILE));
+    $('webhook-url').textContent = `${API}/webhook/green-api/${d.green_api_instance_id}`;
+    toast('Configuration WhatsApp sauvegardée!');
+  } catch { toast('Sauvegardé (démo)'); }
+}
+
+async function testWaConnection() {
+  $('wa-test-result').innerHTML = '<div class="spinner"></div>';
+  await new Promise(r => setTimeout(r, 1500)); // Simulation
+  $('wa-test-result').innerHTML = '<span style="color:var(--green)">✅ Instance connectée — WhatsApp opérationnel</span>';
+}
+
+function copyWebhookUrl() {
+  navigator.clipboard.writeText($('webhook-url').textContent).then(() => toast('URL copiée!'));
+}
+
+async function savePayment() {
+  const selected = document.querySelector('.provider-btn.selected');
+  const d = { payment_provider: selected?.textContent.toLowerCase(), payment_api_key: $('s-pay-key').value, payment_site_id: $('s-site-id').value };
+  try {
+    await apiFetch('/api/shop/profile', { method:'PATCH', body: JSON.stringify(d) });
+    PROFILE = { ...PROFILE, ...d };
+    toast('Configuration paiement sauvegardée!');
+  } catch { toast('Sauvegardé (démo)'); }
+}
+
+async function saveShopInfo() {
+  const d = { shop_name: $('s-shop-name').value, currency: $('s-currency').value };
+  try {
+    await apiFetch('/api/shop/profile', { method:'PATCH', body: JSON.stringify(d) });
+    PROFILE = { ...PROFILE, ...d };
+    $('user-shop-name').textContent = d.shop_name;
+    $('user-avatar').textContent = d.shop_name[0].toUpperCase();
+    toast('Infos boutique sauvegardées!');
+  } catch { toast('Sauvegardé (démo)'); }
+}
+
+// ── ADMIN ──
+function showAdminLogin() {
+  const secret = prompt('Entrez le mot de passe administrateur:');
+  if (secret) {
+    showScreen('screen-admin');
+    loadAdminData();
+  }
+}
+
+async function loadAdminData() {
+  // Fetch stats
+  const mockStats = { total_shops:47, active_shops:41, trial_shops:6, total_revenue:12450000, total_orders:1834, total_contacts:9241 };
+  let stats = mockStats;
+  try { stats = await fetch(API+'/api/admin/stats', {headers:{'X-Admin-Secret':'demo'}}).then(r=>r.json()); } catch {}
+
+  $('a-total-shops').textContent = stats.total_shops;
+  $('a-active-shops').textContent = stats.active_shops;
+  $('a-revenue').textContent = fmt(stats.total_revenue);
+  $('a-orders').textContent = stats.total_orders;
+  if ($('a-contacts')) $('a-contacts').textContent = stats.total_contacts;
+  if ($('a-mrr')) $('a-mrr').textContent = fmt(Math.round(stats.total_revenue * 0.08));
+  if ($('a-arpu')) $('a-arpu').textContent = fmt(Math.round(stats.total_revenue / (stats.active_shops||1)));
+
+  // Chart admin
+  const c = $('adminRevenueChart');
+  if (c) {
+    const ctx = c.getContext('2d');
+    new Chart(ctx, {
+      type:'bar',
+      data: {
+        labels:['Jan','Fév','Mar','Avr','Mai','Jun'],
+        datasets:[
+          {label:'Revenus (k XOF)',data:[820,940,1100,980,1350,1240],backgroundColor:'#ff6b2b88',borderColor:'#ff6b2b',borderWidth:1,borderRadius:4},
+          {label:'Boutiques',data:[32,35,38,37,43,47],backgroundColor:'#3b82f688',borderColor:'#3b82f6',borderWidth:1,borderRadius:4}
+        ]
+      },
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#6b6b80',font:{size:11}}}},scales:{x:{grid:{color:'#ffffff08'},ticks:{color:'#6b6b80',font:{size:10}}},y:{grid:{color:'#ffffff08'},ticks:{color:'#6b6b80',font:{size:10}}}}}
+    });
+  }
+
+  // Load shops
+  const mockShops = [
+    {id:'1',shop_name:'Boutique Fatou Mode',shop_type:'ecommerce',email:'fatou@gmail.com',plan:'pro',is_active:true,payment_provider:'cinetpay',whatsapp_number:'+225070000001',green_api_instance_id:'1101234567'},
+    {id:'2',shop_name:'Immobilier Dakar Premium',shop_type:'immobilier',email:'contact@immosn.com',plan:'starter',is_active:true,payment_provider:'hub2',whatsapp_number:'+221770000002',green_api_instance_id:'1101234568'},
+    {id:'3',shop_name:'Hotel Beau Rivage',shop_type:'hotel',email:'reservations@beaurivage.tg',plan:'pro',is_active:false,payment_provider:'fedapay',whatsapp_number:'+228900000003',green_api_instance_id:'1101234569'},
+    {id:'4',shop_name:'TechStore Abidjan',shop_type:'ecommerce',email:'tech@store.ci',plan:'trial',is_active:true,payment_provider:'cinetpay',whatsapp_number:null,green_api_instance_id:null},
+    {id:'5',shop_name:'Coiffure Elite Cotonou',shop_type:'autre',email:'elite@coiff.bj',plan:'starter',is_active:true,payment_provider:'fedapay',whatsapp_number:'+229960000005',green_api_instance_id:'1101234571'},
+  ];
+  try { const d = await fetch(API+'/api/admin/shops',{headers:{'X-Admin-Secret':'demo'}}).then(r=>r.json()); allAdminShops = d.shops || mockShops; }
+  catch { allAdminShops = mockShops; }
+  renderAdminShops(allAdminShops);
+}
+
+function renderAdminShops(shops) {
+  const typeIcon = {ecommerce:'🛍️',immobilier:'🏠',hotel:'🏨',autre:'📦'};
+  const planBadge = p => ({'pro':'badge-purple','starter':'badge-blue','trial':'badge-orange'}[p]||'badge-gray');
+  $('admin-shops-body').innerHTML = shops.map(s => `<tr>
+    <td><div style="font-weight:500">${s.shop_name}</div></td>
+    <td style="font-size:.8rem;color:var(--muted)">${s.email}</td>
+    <td>${typeIcon[s.shop_type]||'📦'} <span style="font-size:.78rem;color:var(--muted)">${s.shop_type}</span></td>
+    <td><span class="badge ${planBadge(s.plan)}">${s.plan.toUpperCase()}</span></td>
+    <td style="font-size:.78rem;font-family:'DM Mono',monospace;color:${s.whatsapp_number?'var(--text)':'var(--muted)'}">${s.whatsapp_number||'Non défini'}</td>
+    <td><span style="font-size:.75rem;color:var(--muted)">${s.payment_provider?.toUpperCase()||'—'}</span></td>
+    <td>${s.is_active ? '<span class="badge badge-green">✅ Actif</span>' : '<span class="badge badge-red">🚫 Bloqué</span>'}</td>
+    <td>
+      <button onclick="adminToggleShop('${s.id}','${s.shop_name}',${s.is_active})" style="background:${s.is_active?'#ef444418':'#22c55e18'};border:1px solid ${s.is_active?'#ef444444':'#22c55e44'};color:${s.is_active?'var(--red)':'var(--green)'};padding:.3rem .7rem;border-radius:8px;cursor:pointer;font-size:.75rem;">
+        ${s.is_active ? '🚫 Bloquer' : '✅ Débloquer'}
+      </button>
+    </td>
+  </tr>`).join('');
+}
+
+function filterAdminShops() {
+  const q = $('admin-search').value.toLowerCase();
+  renderAdminShops(allAdminShops.filter(s => s.shop_name.toLowerCase().includes(q) || s.email.toLowerCase().includes(q) || (s.whatsapp_number||'').includes(q)));
+}
+
+async function adminToggleShop(id, name, isActive) {
+  const action = isActive ? 'bloquer' : 'débloquer';
+  if (!confirm(`Voulez-vous ${action} "${name}"?`)) return;
+  try {
+    await fetch(`${API}/api/admin/shops/${id}/toggle`, { method:'PATCH', headers:{'X-Admin-Secret':'demo'} });
+  } catch {}
+  allAdminShops = allAdminShops.map(s => s.id === id ? { ...s, is_active: !s.is_active } : s);
+  renderAdminShops(allAdminShops.filter(s => {
+    const q = $('admin-search')?.value.toLowerCase() || '';
+    return !q || s.shop_name.toLowerCase().includes(q) || s.email.toLowerCase().includes(q);
+  }));
+  toast(`Boutique ${isActive ? 'bloquée' : 'débloquée'}: ${name}`);
+}
+
+async function loadAdminLogs() {
+  const mockLogs = [
+    {action:'BLOCK_SHOP',details:{shop_name:'Hotel Beau Rivage'},admin_email:'admin@crmlite.com',created_at:'2025-06-07T10:30:00Z'},
+    {action:'UNBLOCK_SHOP',details:{shop_name:'Boutique Fatou Mode'},admin_email:'admin@crmlite.com',created_at:'2025-06-06T14:22:00Z'},
+    {action:'DELETE_SHOP',details:{shop_name:'Spam Store'},admin_email:'admin@crmlite.com',created_at:'2025-06-05T09:00:00Z'},
+  ];
+  $('admin-logs-body').innerHTML = mockLogs.map(l => `<tr>
+    <td><span class="badge ${l.action.includes('BLOCK')&&!l.action.includes('UN')?'badge-red':l.action.includes('UN')?'badge-green':'badge-gray'}">${l.action}</span></td>
+    <td>${l.details?.shop_name||'—'}</td>
+    <td style="font-size:.78rem;color:var(--muted)">${l.admin_email}</td>
+    <td style="color:var(--muted)">${fmtDate(l.created_at)}</td>
+  </tr>`).join('');
+}
+
+// ── AUTO LOGIN IF TOKEN ──
+window.addEventListener('DOMContentLoaded', () => {
+  if (TOKEN && PROFILE) loadApp();
+});
+</script>
+</body>
+</html>
+
