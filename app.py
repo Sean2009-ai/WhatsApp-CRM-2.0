@@ -30,26 +30,14 @@ def get_supabase() -> Client:
     if not url or not key:
         raise Exception("Variables Supabase manquantes")
     return create_client(url, key)
-
-def get_grok():
-    return OpenAI(
-        api_key=os.getenv("GROK_API_KEY", ""),
-        base_url="https://api.x.ai/v1"
-    )
-
-ADMIN_SECRET = os.getenv("ADMIN_SECRET", "admin-secret")
-API_URL      = os.getenv("API_URL", "http://localhost:5000")
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5000")
-
-
-# ── HELPERS ───────────────────────────────────────────
-def admin_required(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        if request.headers.get("X-Admin-Secret", "") != ADMIN_SECRET:
-            return jsonify({"error": "Acces refuse"}), 403
-        return f(*args, **kwargs)
-    return decorated
+def get_supabase() -> Client:
+    url = os.environ.get("SUPABASE_URL") or os.getenv("SUPABASE_URL", "")
+    key = os.environ.get("SUPABASE_SERVICE_KEY") or os.getenv("SUPABASE_SERVICE_KEY", "")
+    print(f"[DEBUG] SUPABASE_URL: {url[:30] if url else 'VIDE'}")
+    print(f"[DEBUG] SUPABASE_KEY: {key[:20] if key else 'VIDE'}")
+    if not url or not key:
+        raise Exception("Variables Supabase manquantes")
+    return create_client(url, key)    return decorated
 
 
 def get_profile(user_id: str) -> Optional[dict]:
