@@ -24,15 +24,18 @@ app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET", "change-me-in-prod")
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days=7)
 jwt = JWTManager(app)
 
-supabase: Client = create_client(
-    os.getenv("SUPABASE_URL", ""),
-    os.getenv("SUPABASE_SERVICE_KEY", "")
-)
+def get_supabase() -> Client:
+    url = os.getenv("SUPABASE_URL", "")
+    key = os.getenv("SUPABASE_SERVICE_KEY", "")
+    if not url or not key:
+        raise Exception("Variables Supabase manquantes")
+    return create_client(url, key)
 
-grok = OpenAI(
-    api_key=os.getenv("GROK_API_KEY", ""),
-    base_url="https://api.x.ai/v1"
-)
+def get_grok():
+    return OpenAI(
+        api_key=os.getenv("GROK_API_KEY", ""),
+        base_url="https://api.x.ai/v1"
+    )
 
 ADMIN_SECRET = os.getenv("ADMIN_SECRET", "admin-secret")
 API_URL      = os.getenv("API_URL", "http://localhost:5000")
@@ -51,7 +54,7 @@ def admin_required(f):
 
 def get_profile(user_id: str) -> Optional[dict]:
     try:
-        res = supabase.table("profiles").select("*").eq("id", user_id).single().execute()
+        res = get_supabase().table("profiles").select("*").eq("id", user_id).single().execute()
         return res.data
     except Exception:
         return None
@@ -81,12 +84,12 @@ def register():
     if not all(data.get(k) for k in required):
         return jsonify({"error": "Champs manquants"}), 400
     try:
-        auth_res = supabase.auth.sign_up({
+        auth_res = get_supabase().auth.sign_up({
             "email": data["email"],
             "password": data["password"]
         })
         uid = auth_res.user.id
-        supabase.table("profiles").insert({
+        get_supabase().table("profiles").insert({
             "id": uid,
             "email": data["email"],
             "shop_name": data["shop_name"],
@@ -107,7 +110,7 @@ def register():
 def login():
     data = request.json or {}
     try:
-        auth_res = supabase.auth.sign_in_with_password({
+        auth_res = get_supabase().auth.sign_in_with_password({
             "email": data["email"],
             "password": data["password"]
         })
@@ -147,7 +150,7 @@ def shop_profile_update():
         "whatsapp_number"
     ]
     data = {k: v for k, v in (request.json or {}).items() if k in allowed}
-    supabase.table("profiles").update(data).eq("id", uid).execute()
+    get_supabase().table("profiles").update(data).eq("id", uid).execute()
     return jsonify({"success": True})
 
 
@@ -156,7 +159,7 @@ def shop_profile_update():
 @jwt_required()
 def catalog_get():
     uid = get_jwt_identity()
-    res = supabase.table("ai_catalog").select("*").eq("profile_id", uid).execute()
+    res = get_supabase().table("ai_catalog").select("*").eq("profile_id", uid).execute()
     return jsonify(res.data)
 
 
@@ -165,7 +168,7 @@ def catalog_get():
 def catalog_add():
     uid = get_jwt_identity()
     d = request.json or {}
-    res = supabase.table("ai_catalog").insert({
+    res = get_supabase().table("ai_catalog").insert({
         "profile_id": uid,
         "name": d.get("name"),
         "description": d.get("description"),
@@ -181,7 +184,7 @@ def catalog_add():
 @jwt_required()
 def catalog_delete(item_id):
     uid = get_jwt_identity()
-    supabase.table("ai_catalog").delete().eq("id", item_id).eq("profile_id", uid).execute()
+    get_supabase().table("ai_catalog").delete().eq("id", item_id).eq("profile_id", uid).execute()
     return jsonify({"success": True})
 
 
@@ -190,8 +193,8 @@ def catalog_delete(item_id):
 @jwt_required()
 def shop_dashboard():
     uid = get_jwt_identity()
-    orders = supabase.table("orders").select("*").eq("profile_id", uid).execute().data or []
-    contacts = supabase.table("contacts").select("*").eq("profile_id", uid).execute().data or []
+    orders = get_supabase().table("orders").select("*").eq("profile_id", uid).execute().data or []
+    contacts = get_supabase().table("contacts").select("*").eq("profile_id", uid).execute().data or []
     paid = [o for o in orders if o["payment_status"] == "paid"]
     pending = [o for o in orders if o["payment_status"] == "pending"]
     total_revenue = sum(float(o["amount"]) for o in paid)
@@ -226,7 +229,7 @@ def shop_dashboard():
 def orders_get():
     uid = get_jwt_identity()
     status = request.args.get("status")
-    q = supabase.table("orders").select("*, contacts(display_name,whatsapp_number)").eq("profile_id", uid)
+    q = get_supabase().table("orders").select("*, contacts(display_name,whatsapp_number)").eq("profile_id", uid)
     if status:
         q = q.eq("payment_status", status)
     res = q.order("created_at", desc=True).limit(50).execute()
@@ -237,7 +240,7 @@ def orders_get():
 @jwt_required()
 def contacts_get():
     uid = get_jwt_identity()
-    res = supabase.table("contacts").select("*").eq("profile_id", uid).order("last_contact_at", desc=True).limit(100).execute()
+    res = get_supabase().table("contacts").select("*").eq("profile_id", uid).order("last_contact_at", desc=True).limit(100).execute()
     return jsonify(res.data)
 
 
@@ -255,7 +258,7 @@ def handle_whatsapp(instance_id: str, body: dict):
     try:
         if body.get("typeWebhook") != "incomingMessageReceived":
             return
-        res = supabase.table("profiles").select("*").eq("green_api_instance_id", instance_id).eq("is_active", True).execute()
+        res = get_supabase().table("profiles").select("*").eq("green_api_instance_id", instance_id).eq("is_active", True).execute()
         if not res.data:
             return
         profile = res.data[0]
@@ -270,26 +273,26 @@ def handle_whatsapp(instance_id: str, body: dict):
         chat_id = sender_data.get("chatId", "").replace("@c.us", "")
         sender_name = sender_data.get("senderName", "")
         # Contact
-        cr = supabase.table("contacts").select("*").eq("profile_id", profile["id"]).eq("whatsapp_number", chat_id).execute()
+        cr = get_supabase().table("contacts").select("*").eq("profile_id", profile["id"]).eq("whatsapp_number", chat_id).execute()
         if cr.data:
             contact = cr.data[0]
         else:
-            contact = supabase.table("contacts").insert({
+            contact = get_supabase().table("contacts").insert({
                 "profile_id": profile["id"],
                 "whatsapp_number": chat_id,
                 "display_name": sender_name
             }).execute().data[0]
         # Conversation
-        cvr = supabase.table("conversations").select("*").eq("profile_id", profile["id"]).eq("contact_id", contact["id"]).eq("status", "open").execute()
+        cvr = get_supabase().table("conversations").select("*").eq("profile_id", profile["id"]).eq("contact_id", contact["id"]).eq("status", "open").execute()
         if cvr.data:
             conv = cvr.data[0]
         else:
-            conv = supabase.table("conversations").insert({
+            conv = get_supabase().table("conversations").insert({
                 "profile_id": profile["id"],
                 "contact_id": contact["id"]
             }).execute().data[0]
         # Save inbound
-        supabase.table("messages").insert({
+        get_supabase().table("messages").insert({
             "conversation_id": conv["id"],
             "profile_id": profile["id"],
             "direction": "inbound",
@@ -297,7 +300,7 @@ def handle_whatsapp(instance_id: str, body: dict):
             "content": text
         }).execute()
         # Catalog
-        cat = supabase.table("ai_catalog").select("*").eq("profile_id", profile["id"]).eq("availability", "available").execute().data or []
+        cat = get_supabase().table("ai_catalog").select("*").eq("profile_id", profile["id"]).eq("availability", "available").execute().data or []
         # AI
         history = conv.get("ai_conversation_context") or []
         ai = call_grok(profile, contact, text, history, cat)
@@ -310,20 +313,20 @@ def handle_whatsapp(instance_id: str, body: dict):
         }
         if ai.get("detected_city"):
             upd["city"] = ai["detected_city"]
-        supabase.table("contacts").update(upd).eq("id", contact["id"]).execute()
+        get_supabase().table("contacts").update(upd).eq("id", contact["id"]).execute()
         # Update conversation context
         new_hist = history + [
             {"role": "user", "content": text},
             {"role": "assistant", "content": ai["message"]}
         ]
-        supabase.table("conversations").update({
+        get_supabase().table("conversations").update({
             "ai_conversation_context": new_hist[-20:],
             "updated_at": datetime.utcnow().isoformat()
         }).eq("id", conv["id"]).execute()
         # Send reply
         wa_send(profile["green_api_instance_id"], profile["green_api_token"], chat_id, ai["message"])
         # Save outbound
-        supabase.table("messages").insert({
+        get_supabase().table("messages").insert({
             "conversation_id": conv["id"],
             "profile_id": profile["id"],
             "direction": "outbound",
@@ -361,7 +364,7 @@ def call_grok(profile: dict, contact: dict, message: str, history: list, catalog
     msgs.append({"role": "user", "content": message})
 
     try:
-        resp = grok.chat.completions.create(
+        resp = get_grok().chat.completions.create(
             model="grok-3",
             max_tokens=600,
             messages=msgs
@@ -450,7 +453,7 @@ def create_order(profile: dict, contact: dict, conv: dict, ai: dict, chat_id: st
     ref = make_order_number()
     amount = float(ai["order_amount"])
     desc = ai.get("order_description", "Commande")
-    order = supabase.table("orders").insert({
+    order = get_supabase().table("orders").insert({
         "profile_id": profile["id"],
         "contact_id": contact["id"],
         "conversation_id": conv["id"],
@@ -465,8 +468,8 @@ def create_order(profile: dict, contact: dict, conv: dict, ai: dict, chat_id: st
 
     pay = create_payment_link(profile.get("payment_provider", "cinetpay"), profile, ref, amount, desc)
     if pay["success"]:
-        supabase.table("orders").update({"payment_link": pay["url"]}).eq("id", order["id"]).execute()
-        supabase.table("conversations").update({"status": "waiting_payment"}).eq("id", conv["id"]).execute()
+        get_supabase().table("orders").update({"payment_link": pay["url"]}).eq("id", order["id"]).execute()
+        get_supabase().table("conversations").update({"status": "waiting_payment"}).eq("id", conv["id"]).execute()
         msg = (
             f"Commande: #{ref}\n"
             f"Montant: {int(amount):,} {profile.get('currency','XOF')}\n\n"
@@ -478,18 +481,18 @@ def create_order(profile: dict, contact: dict, conv: dict, ai: dict, chat_id: st
 
 def confirm_payment(reference: str):
     try:
-        res = supabase.table("orders").select("*, profiles!inner(*), contacts(whatsapp_number)").eq("payment_reference", reference).execute()
+        res = get_supabase().table("orders").select("*, profiles!inner(*), contacts(whatsapp_number)").eq("payment_reference", reference).execute()
         if not res.data:
             return
         order = res.data[0]
         if order["payment_status"] == "paid":
             return
-        supabase.table("orders").update({
+        get_supabase().table("orders").update({
             "payment_status": "paid",
             "payment_confirmed_at": datetime.utcnow().isoformat()
         }).eq("id", order["id"]).execute()
         if order.get("conversation_id"):
-            supabase.table("conversations").update({"status": "completed"}).eq("id", order["conversation_id"]).execute()
+            get_supabase().table("conversations").update({"status": "completed"}).eq("id", order["conversation_id"]).execute()
         p = order["profiles"]
         c = order.get("contacts", {})
         if p.get("green_api_instance_id") and c.get("whatsapp_number"):
@@ -531,9 +534,9 @@ def webhook_hub2():
 @app.route("/api/admin/stats", methods=["GET"])
 @admin_required
 def admin_stats():
-    shops = supabase.table("profiles").select("id,is_active,plan").execute().data or []
-    orders = supabase.table("orders").select("amount,payment_status").execute().data or []
-    contacts = supabase.table("contacts").select("id").execute().data or []
+    shops = get_supabase().table("profiles").select("id,is_active,plan").execute().data or []
+    orders = get_supabase().table("orders").select("amount,payment_status").execute().data or []
+    contacts = get_supabase().table("contacts").select("id").execute().data or []
     paid = [o for o in orders if o["payment_status"] == "paid"]
     return jsonify({
         "total_shops": len(shops),
@@ -548,7 +551,7 @@ def admin_stats():
 @app.route("/api/admin/shops", methods=["GET"])
 @admin_required
 def admin_shops():
-    res = supabase.table("profiles").select(
+    res = get_supabase().table("profiles").select(
         "id,shop_name,shop_type,email,phone,country,whatsapp_number,payment_provider,plan,is_active,green_api_instance_id,created_at"
     ).order("created_at", desc=True).execute()
     return jsonify({"shops": res.data})
@@ -557,12 +560,12 @@ def admin_shops():
 @app.route("/api/admin/shops/<shop_id>/toggle", methods=["PATCH"])
 @admin_required
 def admin_toggle(shop_id):
-    res = supabase.table("profiles").select("is_active,shop_name").eq("id", shop_id).single().execute()
+    res = get_supabase().table("profiles").select("is_active,shop_name").eq("id", shop_id).single().execute()
     if not res.data:
         return jsonify({"error": "Introuvable"}), 404
     new_status = not res.data["is_active"]
-    supabase.table("profiles").update({"is_active": new_status}).eq("id", shop_id).execute()
-    supabase.table("admin_logs").insert({
+    get_supabase().table("profiles").update({"is_active": new_status}).eq("id", shop_id).execute()
+    get_supabase().table("admin_logs").insert({
         "admin_email": request.headers.get("X-Admin-Email", "admin"),
         "action": "BLOCK_SHOP" if not new_status else "UNBLOCK_SHOP",
         "target_profile_id": shop_id,
@@ -574,14 +577,14 @@ def admin_toggle(shop_id):
 @app.route("/api/admin/shops/<shop_id>", methods=["DELETE"])
 @admin_required
 def admin_delete(shop_id):
-    supabase.table("profiles").delete().eq("id", shop_id).execute()
+    get_supabase().table("profiles").delete().eq("id", shop_id).execute()
     return jsonify({"success": True})
 
 
 @app.route("/api/admin/logs", methods=["GET"])
 @admin_required
 def admin_logs():
-    res = supabase.table("admin_logs").select("*").order("created_at", desc=True).limit(100).execute()
+    res = get_supabase().table("admin_logs").select("*").order("created_at", desc=True).limit(100).execute()
     return jsonify(res.data)
 
 
